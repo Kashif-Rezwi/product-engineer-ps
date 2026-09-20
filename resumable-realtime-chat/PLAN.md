@@ -126,6 +126,7 @@ Conversation
 UserMessage
   id             cuid  PK
   conversationId FK -> Conversation
+  role           String  @default("user")
   content        Text
   createdAt      DateTime
 
