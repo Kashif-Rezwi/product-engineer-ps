@@ -3,19 +3,16 @@ import { conversationService } from './conversation.service.js';
 import { RunEvent } from '../types/events.js';
 
 export class RunnerService {
-    // Executes a run in the background (asynchronous, detached execution)
+    // Executes a run in the background with database persistence
     async executeRun(runId: string, conversationId: string, prompt: string): Promise<void> {
-        const run = await conversationService.getRunById(runId);
+        // 1. Mark RUNNING in database
+        const run = await conversationService.markRunRunning(runId);
         if (!run) {
-            console.error(`[RunnerService] Run ${runId} not found`);
+            console.error(`[RunnerService] Run ${runId} could not be transitioned to RUNNING`);
             return;
         }
 
-        // 1. Mark RUNNING
-        run.status = 'RUNNING';
-        run.traceLog = [];
-        run.updatedAt = new Date().toISOString();
-
+        const traceLog: RunEvent[] = [];
         let position = 0;
 
         try {
@@ -27,7 +24,7 @@ export class RunnerService {
                     text: textChunk
                 };
 
-                run.traceLog.push(event);
+                traceLog.push(event);
                 position++;
             }
 
@@ -36,20 +33,19 @@ export class RunnerService {
                 type: 'completed',
                 position
             };
-            run.traceLog.push(completedEvent);
-            run.status = 'COMPLETED';
-            run.updatedAt = new Date().toISOString();
-            console.log(`[RunnerService] Run ${runId} finished successfully with ${position} chunks`);
+            traceLog.push(completedEvent);
+
+            await conversationService.markRunCompleted(runId, traceLog);
+            console.log(`[RunnerService] Run ${runId} persisted as COMPLETED with ${position} chunks`);
         } catch (error: any) {
             // 4. Mark FAILED
             const failedEvent: RunEvent = {
                 type: 'failed',
                 message: error.message || 'Unknown generation error'
             };
-            run.traceLog.push(failedEvent);
-            run.status = 'FAILED';
-            run.error = error.message;
-            run.updatedAt = new Date().toISOString();
+            traceLog.push(failedEvent);
+
+            await conversationService.markRunFailed(runId, error.message, traceLog);
             console.error(`[RunnerService] Run ${runId} failed:`, error);
         }
     }

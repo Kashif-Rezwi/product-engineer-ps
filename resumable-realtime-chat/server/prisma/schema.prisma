@@ -1,0 +1,50 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum RunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model Conversation {
+  id        String        @id @default(cuid())
+  createdAt DateTime      @default(now())
+  messages  UserMessage[]
+  runs      Run[]
+}
+
+model UserMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String       @default("user")
+  content        String
+  createdAt      DateTime     @default(now())
+  runs           Run[]
+
+  @@index([conversationId])
+}
+
+model Run {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userMessageId  String
+  userMessage    UserMessage  @relation(fields: [userMessageId], references: [id], onDelete: Cascade)
+  status         RunStatus    @default(QUEUED)
+  traceLog       Json?        // Stores ordered RunEvent[]
+  error          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([conversationId])
+  @@index([userMessageId])
+}
