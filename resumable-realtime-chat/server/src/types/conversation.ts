@@ -1,3 +1,5 @@
+import { RunEvent } from './events.js';
+
 export type RunStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 export type MessageRole = 'user' | 'assistant' | 'system';
 
@@ -6,6 +8,8 @@ export interface Run {
     conversationId: string;
     userMessageId: string;
     status: RunStatus;
+    traceLog?: RunEvent[];
+    error?: string;
     createdAt: string;
     updatedAt: string;
 }

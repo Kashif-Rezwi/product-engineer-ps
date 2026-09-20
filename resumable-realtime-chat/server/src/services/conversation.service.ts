@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 
 // In-memory store for Phase 1
 const conversations = new Map<string, Conversation>();
+const runs = new Map<string, Run>();
 
 export class ConversationService {
     // Creates a new empty conversation
@@ -51,6 +52,7 @@ export class ConversationService {
         };
 
         conv.messages.push(message);
+        runs.set(runId, run);
         return { message, run };
     }
 
@@ -58,6 +60,11 @@ export class ConversationService {
     async getConversationById(conversationId: string): Promise<Conversation | null> {
         return conversations.get(conversationId) || null;
     }
+
+    async getRunById(runId: string): Promise<Run | null> {
+        return runs.get(runId) || null;
+    }
+
 }
 
 export const conversationService = new ConversationService();

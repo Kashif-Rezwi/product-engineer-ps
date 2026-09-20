@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { conversationService } from '../services/conversation.service.js';
+import { runnerService } from '../services/runner.service.js';
 
 export class ConversationController {
     // POST /conversations
@@ -24,10 +25,16 @@ export class ConversationController {
                 return;
             }
 
+            // Create message and run
             const result = await conversationService.createMessageAndRun(
                 conversationId as string,
                 content.trim()
             );
+
+            // Fire background run
+            runnerService.executeRun(result.run.id, conversationId as string, content.trim()).catch((err) => {
+                console.error('[Background Run Execution Error]', err);
+            });
 
             res.status(201).json({
                 messageId: result.message.id,
