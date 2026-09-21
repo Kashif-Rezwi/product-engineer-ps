@@ -1,5 +1,5 @@
 // Canonical client-side type definitions.
-// Single source of truth — imported by sse.ts, stream.reducer.ts, use-conversation-stream.ts, use-conversation.ts, and page.tsx.
+// Single source of truth — imported by sse.ts, stream.reducer.ts, use-conversation-stream.ts, and use-conversation.ts.
 
 // ─── SSE Wire Event Types ────────────────────────────────────────────────────
 
@@ -46,4 +46,26 @@ export interface ChatMessage {
   runId?: string;
   timestamp: string;
   isError?: boolean;
+}
+
+// ─── Server Wire Types (GET /conversations/:id) ──────────────────────────────
+
+export interface ServerRun {
+  id: string;
+  status: string;
+  error?: string | null;
+  traceLog?: Array<{ type: string; position?: number; text?: string }> | null;
+}
+
+export interface ServerMessage {
+  id: string;
+  role: string;
+  content: string;
+  createdAt: string;
+  runs?: ServerRun[];
+}
+
+export interface ServerConversation {
+  id: string;
+  messages: ServerMessage[];
 }

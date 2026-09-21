@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ChatMessage } from './types';
+import { ChatMessage, ServerConversation } from './types';
 import { API_BASE_URL } from './config';
 
 function makeTimestamp(isoString?: string): string {
@@ -7,27 +7,7 @@ function makeTimestamp(isoString?: string): string {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// Shape of a message returned by GET /conversations/:id
-interface ServerMessage {
-  id: string;
-  role: string;
-  content: string;
-  createdAt: string;
-  runs?: Array<{
-    id: string;
-    status: string;
-    error?: string | null;
-    traceLog?: Array<{ type: string; position?: number; text?: string }> | null;
-  }>;
-}
-
-interface ServerConversation {
-  id: string;
-  messages: ServerMessage[];
-}
-
 interface UseConversationReturn {
-  conversationId: string;
   messages: ChatMessage[];
   isReady: boolean;
   latestRunningRunId: string | null;
@@ -149,9 +129,8 @@ export function useConversation(conversationId: string): UseConversationReturn {
       const { runId } = await res.json();
       return { runId };
     },
-    [conversationId]
+    [conversationId],
   );
-
 
   // Commit the completed AI response to message history.
   // Idempotent — guarded by runId to prevent double-append.
@@ -172,11 +151,10 @@ export function useConversation(conversationId: string): UseConversationReturn {
         ];
       });
     },
-    []
+    [],
   );
 
   return {
-    conversationId,
     messages,
     isReady,
     latestRunningRunId,

@@ -5,7 +5,7 @@ export interface EmptyStateCopy {
   placeholder: string;
 }
 
-export const EMPTY_STATE_COPY_OPTIONS: EmptyStateCopy[] = [
+const EMPTY_STATE_COPY_OPTIONS: EmptyStateCopy[] = [
   {
     heading: 'What’s on the agenda today?',
     placeholder: 'Tell me what we’re working on.',
@@ -36,17 +36,19 @@ export const EMPTY_STATE_COPY_OPTIONS: EmptyStateCopy[] = [
   },
 ];
 
-export function getRandomEmptyStateCopy(): EmptyStateCopy {
+function getRandomEmptyStateCopy(): EmptyStateCopy {
   const index = Math.floor(Math.random() * EMPTY_STATE_COPY_OPTIONS.length);
   return EMPTY_STATE_COPY_OPTIONS[index];
 }
 
-export function getInitialEmptyStateCopy(): EmptyStateCopy {
-  return EMPTY_STATE_COPY_OPTIONS[0];
-}
-
+/**
+ * Returns randomized empty-state copy. Starts with a fixed option (hydration
+ * safety) and swaps to a random one after mount.
+ */
 export function useEmptyStateCopy(): EmptyStateCopy {
-  const [copy, setCopy] = useState<EmptyStateCopy>(getInitialEmptyStateCopy);
+  const [copy, setCopy] = useState<EmptyStateCopy>(
+    () => EMPTY_STATE_COPY_OPTIONS[0],
+  );
 
   useEffect(() => {
     setCopy(getRandomEmptyStateCopy());

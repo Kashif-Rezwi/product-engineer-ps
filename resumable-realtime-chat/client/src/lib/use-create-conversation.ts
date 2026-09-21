@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from './config';
+import { truncateTitle, DEFAULT_TITLE } from './title';
 import { saveConversation } from './conversations-store';
 
 interface UseCreateConversationReturn {
@@ -10,8 +11,9 @@ interface UseCreateConversationReturn {
   clearError: () => void;
 }
 
-// Shared hook that encapsulates the "create new conversation" flow: POST /conversations → save to localStorage → navigate.
-// Used by both the home page and the conversation page's "New chat" button to eliminate duplicated logic.
+// Shared hook that encapsulates the "create new conversation" flow:
+// POST /conversations → save to localStorage → navigate.
+// Used by both the home page and the conversation page's "New chat" button.
 export function useCreateConversation(): UseCreateConversationReturn {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
@@ -25,17 +27,13 @@ export function useCreateConversation(): UseCreateConversationReturn {
 
       try {
         const res = await fetch(`${API_BASE_URL}/conversations`, {
-          method:  'POST',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         });
         if (!res.ok) throw new Error(`Server error (${res.status})`);
         const data = await res.json();
 
-        const title = initialPrompt
-          ? initialPrompt.length > 48
-            ? initialPrompt.slice(0, 48).trimEnd() + '...'
-            : initialPrompt
-          : 'New conversation';
+        const title = initialPrompt ? truncateTitle(initialPrompt) : DEFAULT_TITLE;
 
         saveConversation(data.id, title, initialPrompt || undefined);
 

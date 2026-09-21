@@ -1,15 +1,15 @@
 import { useReducer, useRef, useCallback, useEffect } from 'react';
 import { streamReducer, initialStreamState } from './stream.reducer';
 import { parseSSEStream } from './sse';
-import { ParsedSSEMessage } from './types';
-import { API_BASE_URL } from './config';
+import { ParsedSSEMessage, ConnectionStatus } from './types';
+import { API_BASE_URL, MAX_RETRY_ATTEMPTS } from './config';
 
 const RETRY_DELAYS = [500, 1000, 2000]; // ms
-const MAX_RETRY_ATTEMPTS = 3;
 
-// Public API surface exposed to consumers. Internal fields (chunks, lastEventId) are intentionally not exposed.
+// Public API surface exposed to consumers. Internal fields (chunks, lastEventId)
+// are intentionally not exposed.
 export interface ConversationStreamState {
-  status: 'disconnected' | 'connected' | 'reconnecting' | 'completed' | 'failed';
+  status: ConnectionStatus;
   runId: string | null;
   text: string;
   reconnectAttempt: number;
@@ -21,9 +21,9 @@ export function useConversationStream() {
   const [state, dispatch] = useReducer(streamReducer, initialStreamState);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  const seenEventIdsRef    = useRef<Set<string>>(new Set());
+  const seenEventIdsRef = useRef<Set<string>>(new Set());
   // Mutable ref — updated immediately on each event, never 1 render behind
-  const lastEventIdRef     = useRef<string | null>(null);
+  const lastEventIdRef = useRef<string | null>(null);
 
   const stopStream = useCallback(() => {
     if (abortControllerRef.current) {
@@ -31,13 +31,6 @@ export function useConversationStream() {
       abortControllerRef.current = null;
     }
   }, []);
-
-  const reset = useCallback(() => {
-    stopStream();
-    seenEventIdsRef.current.clear();
-    lastEventIdRef.current = null;
-    dispatch({ type: 'RESET' });
-  }, [stopStream]);
 
   const markCommitted = useCallback(() => {
     dispatch({ type: 'MARK_COMMITTED' });
@@ -135,7 +128,10 @@ export function useConversationStream() {
               if (!controller.signal.aborted) attempt(nextAttempt);
             }, delay);
           } else {
-            dispatch({ type: 'STREAM_FAILED', error: 'Connection lost after 3 reconnection attempts.' });
+            dispatch({
+              type: 'STREAM_FAILED',
+              error: `Connection lost after ${MAX_RETRY_ATTEMPTS} reconnection attempts.`,
+            });
           }
         }
       }
@@ -151,13 +147,13 @@ export function useConversationStream() {
   // Return only the curated public API — internal reducer fields (chunks, lastEventId)
   // are implementation details that consumers should never access directly.
   const publicState: ConversationStreamState = {
-    status:           state.status,
-    runId:            state.runId,
-    text:             state.text,
+    status: state.status,
+    runId: state.runId,
+    text: state.text,
     reconnectAttempt: state.reconnectAttempt,
-    error:            state.error,
-    committed:        state.committed,
+    error: state.error,
+    committed: state.committed,
   };
 
-  return { ...publicState, startStream, stopStream, reset, markCommitted };
+  return { ...publicState, startStream, markCommitted };
 }
