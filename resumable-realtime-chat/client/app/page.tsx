@@ -1,69 +1,147 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState } from 'react';
+import { Sidebar } from '@/src/components/Sidebar';
+import { Composer } from '@/src/components/Composer';
+import { useCreateConversation } from '@/src/lib/use-create-conversation';
+import { useSidebarConversations } from '@/src/lib/use-sidebar-conversations';
+import { APP_NAME } from '@/src/lib/config';
+import { AppLogo } from '@/src/components/AppLogo';
+import { useEmptyStateCopy } from '@/src/lib/empty-state-copy';
+import {
+  MenuIcon,
+  PlusIcon,
+  AlertCircleIcon,
+} from '@/src/components/icons';
+
+const STARTERS = [
+  {
+    heading: 'How does SSE resumption work?',
+    sub: 'Explain the Last-Event-ID cursor mechanism',
+  },
+  {
+    heading: 'SSE vs WebSockets',
+    sub: 'Trade-offs for real-time AI streaming',
+  },
+  {
+    heading: 'Draft a Redis Streams pipeline',
+    sub: 'Resilient event ingestion architecture',
+  },
+  {
+    heading: 'Explain quantum computing',
+    sub: 'Simple 3-sentence breakdown',
+  },
+];
+
+export default function HomePage() {
+  const [input, setInput] = useState('');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const emptyStateCopy = useEmptyStateCopy();
+  const { isCreating, error, createConversation } = useCreateConversation();
+  const { conversations, handleDelete } = useSidebarConversations();
+
+  function handleStart(promptText?: string) {
+    const text = promptText ?? input.trim();
+    setInput('');
+    createConversation(text || undefined);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex h-dvh bg-paper text-ink overflow-hidden font-sans">
+      {/* ── Sidebar (desktop inline, mobile overlay) ── */}
+      <Sidebar
+        conversations={conversations}
+        onNew={() => handleStart()}
+        onDelete={handleDelete}
+        isCreating={isCreating}
+        isOpen={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* ── Main content area ── */}
+      <div className="flex-1 flex flex-col min-w-0 h-full relative">
+        {/* Mobile top bar with hamburger menu */}
+        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-line bg-paper/90 backdrop-blur shrink-0">
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-sand/40 transition-colors"
+            title="Open sidebar"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+            <MenuIcon className="w-5 h-5" />
+          </button>
+
+          <div className="flex items-center gap-2">
+            <AppLogo size="sm" />
+            <span className="text-sm font-semibold tracking-tight text-ink">
+              {APP_NAME}
+              <span className="text-claret">.</span>
+            </span>
+          </div>
+
+          <button
+            onClick={() => handleStart()}
+            disabled={isCreating}
+            className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-sand/40 transition-colors disabled:opacity-40"
+            title="New chat"
+          >
+            <PlusIcon className="w-5 h-5" />
+          </button>
+        </header>
+
+        <main className="flex-1 flex flex-col items-center justify-center min-w-0 px-4 pb-6 overflow-y-auto scroll-y">
+          {/* Hero */}
+          <div className="flex flex-col items-center gap-3 mb-8 text-center">
+            <AppLogo size="lg" />
+            <h1 className="font-display font-medium text-[clamp(28px,3.8vw,44px)] tracking-[-0.025em] text-ink leading-[1.1]">
+              {emptyStateCopy.heading}
+            </h1>
+          </div>
+
+          {/* Error notice */}
+          {error && (
+            <div className="mb-5 w-full max-w-2xl flex items-center gap-2.5 text-sm text-[#b0382b] bg-[#b0382b]/10 border border-[#b0382b]/25 rounded-xl px-4 py-2.5 animate-fadeIn">
+              <AlertCircleIcon className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Composer */}
+          <div className="w-full max-w-2xl">
+            <Composer
+              value={input}
+              onChange={setInput}
+              onSubmit={(text) => handleStart(text)}
+              disabled={isCreating}
+              sending={isCreating}
+              minHeight="84px"
+              placeholder={emptyStateCopy.placeholder}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          </div>
+
+          {/* Starter cards */}
+          <div className="mt-5 w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {STARTERS.map((s) => (
+              <button
+                key={s.heading}
+                onClick={() => handleStart(s.heading)}
+                disabled={isCreating}
+                className="flex flex-col items-start text-left px-4 py-3.5 bg-paper-2 hover:bg-sand/35 border border-line hover:border-ink/40 rounded-2xl transition-all duration-200 ease-kiln shadow-xs group disabled:opacity-50"
+              >
+                <p className="text-sm font-medium text-ink leading-snug group-hover:text-claret transition-colors">
+                  {s.heading}
+                </p>
+                <p className="text-xs text-muted mt-1 leading-snug">{s.sub}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* Footer hint */}
+          <p className="mt-6 text-xs text-stone font-mono tracking-wide text-center select-none">
+            Enter ↵ to send · Shift+Enter for newline · Streams auto-resume via Last-Event-ID
+          </p>
+        </main>
+      </div>
     </div>
   );
 }
