@@ -3,35 +3,14 @@
 import React, { useState } from 'react';
 import { Sidebar } from '@/src/components/Sidebar';
 import { Composer } from '@/src/components/Composer';
+import { StarterGrid } from '@/src/components/StarterGrid';
+import { ErrorNotice } from '@/src/components/ErrorNotice';
 import { useCreateConversation } from '@/src/lib/use-create-conversation';
 import { useSidebarConversations } from '@/src/lib/use-sidebar-conversations';
 import { APP_NAME } from '@/src/lib/config';
 import { AppLogo } from '@/src/components/AppLogo';
 import { useEmptyStateCopy } from '@/src/lib/empty-state-copy';
-import {
-  MenuIcon,
-  PlusIcon,
-  AlertCircleIcon,
-} from '@/src/components/icons';
-
-const STARTERS = [
-  {
-    heading: 'How does SSE resumption work?',
-    sub: 'Explain the Last-Event-ID cursor mechanism',
-  },
-  {
-    heading: 'SSE vs WebSockets',
-    sub: 'Trade-offs for real-time AI streaming',
-  },
-  {
-    heading: 'Draft a Redis Streams pipeline',
-    sub: 'Resilient event ingestion architecture',
-  },
-  {
-    heading: 'Explain quantum computing',
-    sub: 'Simple 3-sentence breakdown',
-  },
-];
+import { MenuIcon, PlusIcon } from '@/src/components/icons';
 
 export default function HomePage() {
   const [input, setInput] = useState('');
@@ -100,10 +79,7 @@ export default function HomePage() {
 
           {/* Error notice */}
           {error && (
-            <div className="mb-5 w-full max-w-2xl flex items-center gap-2.5 text-sm text-[#b0382b] bg-[#b0382b]/10 border border-[#b0382b]/25 rounded-xl px-4 py-2.5 animate-fadeIn">
-              <AlertCircleIcon className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
+            <ErrorNotice className="mb-5 w-full max-w-2xl py-2.5">{error}</ErrorNotice>
           )}
 
           {/* Composer */}
@@ -120,21 +96,7 @@ export default function HomePage() {
           </div>
 
           {/* Starter cards */}
-          <div className="mt-5 w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {STARTERS.map((s) => (
-              <button
-                key={s.heading}
-                onClick={() => handleStart(s.heading)}
-                disabled={isCreating}
-                className="flex flex-col items-start text-left px-4 py-3.5 bg-paper-2 hover:bg-sand/35 border border-line hover:border-ink/40 rounded-2xl transition-all duration-200 ease-kiln shadow-xs group disabled:opacity-50"
-              >
-                <p className="text-sm font-medium text-ink leading-snug group-hover:text-claret transition-colors">
-                  {s.heading}
-                </p>
-                <p className="text-xs text-muted mt-1 leading-snug">{s.sub}</p>
-              </button>
-            ))}
-          </div>
+          <StarterGrid onSelect={(prompt) => handleStart(prompt)} disabled={isCreating} />
 
           {/* Footer hint */}
           <p className="mt-6 text-xs text-stone font-mono tracking-wide text-center select-none">
