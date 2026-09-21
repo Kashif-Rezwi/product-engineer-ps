@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 import conversationRoutes from './routes/conversation.routes.js';
+import { recoveryService } from './services/recovery.service.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -21,6 +22,16 @@ app.get("/health", (req, res) => {
 // Mount conversation routes
 app.use('/conversations', conversationRoutes);
 
-app.listen(port, () => {
-    console.log(`[Server] Running on http://localhost:${port}`);
-});
+async function startServer() {
+    try {
+        // Reconcile any in-progress runs interrupted by a previous crash
+        await recoveryService.reconcileInterruptedRuns();
+        app.listen(port, () => {
+            console.log(`[Server] Running on http://localhost:${port}`);
+        });
+    } catch (error) {
+        console.error('[Server] Fatal startup error:', error);
+        process.exit(1);
+    }
+}
+startServer();
