@@ -23,25 +23,6 @@ export function SparkleIcon({ className = 'w-4 h-4' }: IconProps) {
   );
 }
 
-
-// Multi-sparkle icon (ideal for hero section)
-export function SparklesIcon({ className = 'w-6 h-6', strokeWidth = DEFAULT_STROKE }: IconProps) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M10 3 Q10 11 18 11 Q10 11 10 19 Q10 11 2 11 Q10 11 10 3 Z" />
-      <path d="M19 2 Q19 5 22 5 Q19 5 19 8 Q19 5 16 5 Q19 5 19 2 Z" />
-    </svg>
-  );
-}
-
 // New Chat / Compose icon (Lucide SquarePen style)
 export function NewChatIcon({ className = 'w-4 h-4', strokeWidth = DEFAULT_STROKE }: IconProps) {
   return (
@@ -197,23 +178,6 @@ export function AlertCircleIcon({ className = 'w-4 h-4', strokeWidth = DEFAULT_S
       <circle cx="12" cy="12" r="10" />
       <line x1="12" x2="12" y1="8" y2="12" />
       <line x1="12" x2="12.01" y1="16" y2="16" />
-    </svg>
-  );
-}
-
-// Clean geometric message square icon
-export function MessageSquareIcon({ className = 'w-5 h-5', strokeWidth = DEFAULT_STROKE }: IconProps) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   );
 }
