@@ -1,10 +1,9 @@
-import { EventEmitter } from 'node:events';
 import { groqService } from './groq.service.js';
 import { conversationService } from './conversation.service.js';
+import { redisService } from './redis.service.js';
 import { RunEvent } from '../types/events.js';
 
-export class RunnerService extends EventEmitter {
-    // Executes a run in the background with database persistence and live event broadcasting
+export class RunnerService {
     async executeRun(runId: string, conversationId: string, prompt: string): Promise<void> {
         // 1. Mark RUNNING in database
         const run = await conversationService.markRunRunning(runId);
@@ -17,7 +16,7 @@ export class RunnerService extends EventEmitter {
         let position = 0;
 
         try {
-            // 2. Consume stream
+            // 2. Consume stream and emit to Redis
             for await (const textChunk of groqService.streamCompletion(prompt)) {
                 const event: RunEvent = {
                     type: 'text_chunk',
@@ -26,7 +25,7 @@ export class RunnerService extends EventEmitter {
                 };
 
                 traceLog.push(event);
-                this.emit(`run:${runId}`, event); // Broadcast live to active SSE streams
+                await redisService.emitEvent(runId, event); // Persist to Redis stream
                 position++;
             }
 
@@ -36,7 +35,7 @@ export class RunnerService extends EventEmitter {
                 position
             };
             traceLog.push(completedEvent);
-            this.emit(`run:${runId}`, completedEvent); // Broadcast completion
+            await redisService.emitEvent(runId, completedEvent); // Emit completed to Redis
 
             await conversationService.markRunCompleted(runId, traceLog);
             console.log(`[RunnerService] Run ${runId} persisted as COMPLETED with ${position} chunks`);
@@ -47,7 +46,7 @@ export class RunnerService extends EventEmitter {
                 message: error.message || 'Unknown generation error'
             };
             traceLog.push(failedEvent);
-            this.emit(`run:${runId}`, failedEvent); // Broadcast failure
+            await redisService.emitEvent(runId, failedEvent); // Emit failure to Redis
 
             await conversationService.markRunFailed(runId, error.message, traceLog);
             console.error(`[RunnerService] Run ${runId} failed:`, error);
