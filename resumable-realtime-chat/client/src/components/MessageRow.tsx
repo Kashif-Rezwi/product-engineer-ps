@@ -2,20 +2,19 @@
 
 // MessageRow — renders a single committed chat message (user or assistant).
 
-import React, { memo, useState } from 'react';
+import React, { memo, useCallback } from 'react';
 import { ChatMessage } from '@/src/lib/types';
+import { useCopyToClipboard } from '@/src/lib/use-copy-to-clipboard';
 import { MarkdownContent } from './MarkdownContent';
 import { CopyIcon, CheckIcon, AlertCircleIcon } from './icons';
 
 function MessageRowBase({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user';
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
 
-  function handleCopy() {
-    navigator.clipboard.writeText(message.content).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
-  }
+  const handleCopy = useCallback(() => {
+    copy(message.content);
+  }, [copy, message.content]);
 
   if (isUser) {
     return (
@@ -31,7 +30,7 @@ function MessageRowBase({ message }: { message: ChatMessage }) {
     <div className="py-4 w-full group">
       <div className="w-full">
         {message.isError ? (
-          <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#b0382b]/10 border border-[#b0382b]/25 text-[#b0382b] text-[13px]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-error/10 border border-error/25 text-error text-[13px]">
             <AlertCircleIcon className="w-4 h-4 shrink-0" />
             <span>{message.content}</span>
           </div>

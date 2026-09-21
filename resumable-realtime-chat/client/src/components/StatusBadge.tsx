@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ConnectionStatus } from '@/src/lib/types';
+import { MAX_RETRY_ATTEMPTS } from '@/src/lib/config';
 
 interface StatusBadgeProps {
   status: ConnectionStatus;
@@ -21,18 +22,18 @@ const STATUS_CONFIG: Record<ConnectionStatus, { label: string; dot: string; ring
   },
   reconnecting: {
     label: 'Reconnecting',
-    dot:  'bg-[#b46914] animate-ping',
-    ring: 'text-[#b46914] border-[#b46914]/30 bg-[#b46914]/10',
+    dot:  'bg-warning animate-ping',
+    ring: 'text-warning border-warning/30 bg-warning/10',
   },
   completed: {
     label: 'Done',
-    dot:  'bg-[#2e6945]',
-    ring: 'text-[#2e6945] border-[#2e6945]/30 bg-[#2e6945]/10',
+    dot:  'bg-done',
+    ring: 'text-done border-done/30 bg-done/10',
   },
   failed: {
     label: 'Failed',
-    dot:  'bg-[#b0382b]',
-    ring: 'text-[#b0382b] border-[#b0382b]/30 bg-[#b0382b]/10',
+    dot:  'bg-error',
+    ring: 'text-error border-error/30 bg-error/10',
   },
 };
 
@@ -40,7 +41,7 @@ const STATUS_CONFIG: Record<ConnectionStatus, { label: string; dot: string; ring
 export function StatusBadge({ status, attempt }: StatusBadgeProps) {
   const cfg = STATUS_CONFIG[status];
   const label =
-    status === 'reconnecting' ? `Retry ${attempt}/3` : cfg.label;
+    status === 'reconnecting' ? `Retry ${attempt}/${MAX_RETRY_ATTEMPTS}` : cfg.label;
 
   return (
     <span

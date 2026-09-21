@@ -6,6 +6,10 @@
 import React, { useEffect, useRef } from 'react';
 import { APP_NAME } from '@/src/lib/config';
 import { SendIcon } from './icons';
+import { Spinner } from './Spinner';
+
+const MAX_HEIGHT_PX = 200;
+const DEFAULT_MIN_HEIGHT_PX = 56;
 
 interface ComposerProps {
   value: string;
@@ -36,8 +40,8 @@ export function Composer({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    const parsedMin = parseInt(minHeight, 10) || 56;
-    el.style.height = `${Math.max(parsedMin, Math.min(el.scrollHeight, 200))}px`;
+    const parsedMin = parseInt(minHeight, 10) || DEFAULT_MIN_HEIGHT_PX;
+    el.style.height = `${Math.max(parsedMin, Math.min(el.scrollHeight, MAX_HEIGHT_PX))}px`;
   }, [value, minHeight]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -56,6 +60,7 @@ export function Composer({
       <textarea
         ref={textareaRef}
         id="message-input"
+        aria-label="Message input"
         value={value}
         rows={1}
         autoFocus={autoFocus}
@@ -64,7 +69,7 @@ export function Composer({
         disabled={disabled}
         placeholder={placeholder}
         className="w-full resize-none bg-transparent px-4 pt-3.5 pb-12 text-[0.9375rem] leading-relaxed text-ink placeholder:text-stone outline-none disabled:opacity-40"
-        style={{ minHeight, maxHeight: '200px' }}
+        style={{ minHeight, maxHeight: `${MAX_HEIGHT_PX}px` }}
       />
 
       {/* Bottom toolbar */}
@@ -79,7 +84,7 @@ export function Composer({
           className="w-8 h-8 flex items-center justify-center rounded-full bg-ink text-paper transition-all duration-[var(--duration-fast)] ease-kiln-inout hover:bg-claret active:scale-[0.96] shadow-xs disabled:bg-sand disabled:text-disabled disabled:cursor-not-allowed"
         >
           {sending ? (
-            <span className="w-3.5 h-3.5 rounded-full border-2 border-paper/30 border-t-paper animate-spin" />
+            <Spinner className="w-3.5 h-3.5" trackClassName="border-paper/30 border-t-paper" />
           ) : (
             <SendIcon className="w-4 h-4" strokeWidth={2} />
           )}

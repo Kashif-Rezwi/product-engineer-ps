@@ -7,11 +7,13 @@ import React from 'react';
 import Link from 'next/link';
 import { StoredConversation } from '@/src/lib/conversations-store';
 import { APP_NAME } from '@/src/lib/config';
+import { cleanTitle } from '@/src/lib/title';
 import { AppLogo } from './AppLogo';
 import { NewChatIcon, CloseIcon, TrashIcon } from './icons';
+import { Spinner } from './Spinner';
 
 interface SidebarProps {
-  // ID of the currently active conversation, if any 
+  // ID of the currently active conversation, if any
   activeId?: string;
   conversations: StoredConversation[];
   onNew: () => void;
@@ -19,11 +21,6 @@ interface SidebarProps {
   isCreating: boolean;
   isOpen?: boolean;
   onClose?: () => void;
-}
-// Cleans a conversation title by removing trailing ellipses and trimming whitespace.
-function cleanTitle(title?: string): string {
-  if (!title) return 'New conversation';
-  return title.replace(/\s+(\.{3}|…)/g, '...').trim();
 }
 
 export function Sidebar({
@@ -79,7 +76,7 @@ export function Sidebar({
               className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-sand/50 transition-colors disabled:opacity-40"
             >
               {isCreating ? (
-                <span className="w-4 h-4 block rounded-full border-2 border-stone/30 border-t-claret animate-spin" />
+                <Spinner className="w-4 h-4" trackClassName="border-stone/30 border-t-claret" />
               ) : (
                 <NewChatIcon className="w-4 h-4" />
               )}
@@ -128,7 +125,7 @@ export function Sidebar({
                         </span>
                       </Link>
 
-                      {/* Delete button: appears floating over the right on hover */}
+                      {/* Delete button: always visible on touch, hover-revealed on desktop */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -136,7 +133,7 @@ export function Sidebar({
                           onDelete(c.id);
                         }}
                         title="Delete conversation"
-                        className="absolute right-1.5 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-opacity duration-150 text-stone hover:text-claret bg-paper-2 hover:bg-sand/80 border border-line shadow-xs"
+                        className="absolute right-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 rounded-lg transition-opacity duration-150 text-stone hover:text-claret bg-paper-2 hover:bg-sand/80 border border-line shadow-xs"
                       >
                         <TrashIcon className="w-3.5 h-3.5" strokeWidth={1.75} />
                       </button>
