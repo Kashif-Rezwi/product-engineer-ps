@@ -12,4 +12,7 @@ router.post('/:id/messages', (req, res) => conversationController.createMessage(
 // GET /conversations/:id -> Get conversation with history
 router.get('/:id', (req, res) => conversationController.getById(req, res));
 
+// GET /conversations/:id/runs/:runId/stream -> Live SSE stream
+router.get('/:id/runs/:runId/stream', (req, res) => conversationController.streamRun(req, res));
+
 export default router;

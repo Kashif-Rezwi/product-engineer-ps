@@ -1,9 +1,10 @@
+import { EventEmitter } from 'node:events';
 import { groqService } from './groq.service.js';
 import { conversationService } from './conversation.service.js';
 import { RunEvent } from '../types/events.js';
 
-export class RunnerService {
-    // Executes a run in the background with database persistence
+export class RunnerService extends EventEmitter {
+    // Executes a run in the background with database persistence and live event broadcasting
     async executeRun(runId: string, conversationId: string, prompt: string): Promise<void> {
         // 1. Mark RUNNING in database
         const run = await conversationService.markRunRunning(runId);
@@ -25,6 +26,7 @@ export class RunnerService {
                 };
 
                 traceLog.push(event);
+                this.emit(`run:${runId}`, event); // Broadcast live to active SSE streams
                 position++;
             }
 
@@ -34,6 +36,7 @@ export class RunnerService {
                 position
             };
             traceLog.push(completedEvent);
+            this.emit(`run:${runId}`, completedEvent); // Broadcast completion
 
             await conversationService.markRunCompleted(runId, traceLog);
             console.log(`[RunnerService] Run ${runId} persisted as COMPLETED with ${position} chunks`);
@@ -44,6 +47,7 @@ export class RunnerService {
                 message: error.message || 'Unknown generation error'
             };
             traceLog.push(failedEvent);
+            this.emit(`run:${runId}`, failedEvent); // Broadcast failure
 
             await conversationService.markRunFailed(runId, error.message, traceLog);
             console.error(`[RunnerService] Run ${runId} failed:`, error);
