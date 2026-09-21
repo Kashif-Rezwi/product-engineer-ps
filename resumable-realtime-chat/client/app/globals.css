@@ -1,9 +1,8 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
-/* ─── Caygnus Design Tokens ─────────────────────────────────────────────────── */
-:root {
-  /* Caygnus Core Palette */
+/* ─── Caygnus Design Tokens (Tailwind v4 theme — single source of truth) ───── */
+@theme {
+  /* Core Palette */
   --color-paper:        #f7f4ed; /* Warm unbleached parchment/cream canvas */
   --color-paper-2:      #fcfaf4; /* Slightly elevated warm paper surface */
   --color-sidebar:      #f2eee5; /* Tactile sidebar background */
@@ -15,66 +14,33 @@
   --color-claret:       #963a2e; /* Signature terracotta claret accent */
   --color-disabled:     #b8b0a5; /* Disabled token */
 
-  /* Semantic Aliases for Chat Components */
-  --bg:                 var(--color-paper);
-  --sidebar:            var(--color-sidebar);
-  --surface:            var(--color-paper-2);
-  --surface-hover:      #ede7db;
-  --input-bg:           var(--color-paper-2);
-  --border:             var(--color-line);
-  --border-sub:         var(--color-sand);
-  --text:               var(--color-ink);
-  --text-sub:           var(--color-muted);
-  --text-muted:         var(--color-stone);
-  --text-faint:         var(--color-stone);
-  --accent:             var(--color-claret);
-
   /* Status Colors */
-  --status-streaming:   #963a2e;
-  --status-done:        #2e6945;
-  --status-warning:     #b46914;
-  --status-error:       #b0382b;
+  --color-warning:      #b46914; /* Reconnecting */
+  --color-done:         #2e6945; /* Completed */
+  --color-error:        #b0382b; /* Failed / errors */
 
-  /* Caygnus Motion & Easing */
-  --ease-kiln:          cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-kiln-inout:    cubic-bezier(0.65, 0, 0.35, 1);
-  --duration-fast:      0.2s;
-  --duration-base:      0.32s;
-}
-
-/* ─── Tailwind v4 Theme Registration ───────────────────────────────────────── */
-@theme {
-  --color-paper:        #f7f4ed;
-  --color-paper-2:      #fcfaf4;
-  --color-sidebar:      #f2eee5;
-  --color-line:         #d8cfbc;
-  --color-sand:         #e4dbc9;
-  --color-ink:          #1a1712;
-  --color-muted:        #5c5545;
-  --color-stone:        #8a8279;
-  --color-claret:       #963a2e;
-  --color-disabled:     #b8b0a5;
-
-  /* Aliased theme colors */
-  --color-bg:            var(--color-paper);
-  --color-surface:       var(--color-paper-2);
-  --color-surface-hover: #ede7db;
-  --color-border:        var(--color-line);
-  --color-border-sub:    var(--color-sand);
-  --color-text:          var(--color-ink);
-  --color-text-sub:      var(--color-muted);
-  --color-text-muted:    var(--color-stone);
-  --color-text-faint:    var(--color-stone);
-  --color-accent:        var(--color-claret);
+  /* Fenced Code Block Palette */
+  --color-code-bg:      #1a1712; /* Charcoal code canvas */
+  --color-code-border:  #352f26; /* Dark warm code border */
+  --color-code-header:  #24201a; /* Code block header bar */
+  --color-code-text:    #f7f4ed; /* Code text on dark canvas */
 
   /* Fonts */
   --font-display:        var(--font-fraunces), ui-serif, Georgia, serif;
   --font-sans:           var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono:           var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* Transitions */
+  /* Motion */
   --ease-kiln:           cubic-bezier(0.22, 1, 0.36, 1);
   --ease-kiln-inout:     cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Animations */
+  --animate-fadeIn:      fadeIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Non-utility runtime variables (always emitted) */
+:root {
+  --duration-fast: 0.2s;
 }
 
 html, body {
@@ -92,21 +58,10 @@ html, body {
   color: var(--color-paper);
 }
 
-/* ─── Streaming cursor ───────────────────────────────────────────────────────── */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-
-.cursor {
-  display: inline-block;
-  width: 2px;
-  height: 1.15em;
-  margin-left: 2px;
-  vertical-align: text-bottom;
-  background-color: var(--color-claret);
-  border-radius: 1px;
-  animation: blink 0.85s ease-in-out infinite;
+/* ─── Entry animation for notices & empty states (animate-fadeIn) ─────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* ─── Three sequentially blinking dots for streaming & thinking states ────── */
@@ -126,7 +81,7 @@ html, body {
 .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
 .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* ─── Warm Tactile Scrollbars ────────────────────────────────────────────────── */
+/* ─── Warm Tactile Scrollbars ───────────────────────────────────────────────── */
 .scroll-y {
   overflow-y: auto;
   scrollbar-width: thin;
@@ -136,162 +91,3 @@ html, body {
 .scroll-y::-webkit-scrollbar-track  { background: transparent; }
 .scroll-y::-webkit-scrollbar-thumb  { background: var(--color-line); border-radius: 9999px; }
 .scroll-y::-webkit-scrollbar-thumb:hover { background: var(--color-stone); }
-
-/* ─── Markdown Body (Editorial Caygnus Aesthetic) ───────────────────────────── */
-.message-text {
-  font-size: 0.9375rem; /* 15px */
-  line-height: 1.7;
-  color: var(--color-ink);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.markdown-body {
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: var(--color-ink);
-  word-break: break-word;
-}
-
-.markdown-body p {
-  margin-bottom: 0.85rem;
-  color: var(--color-ink);
-}
-
-.markdown-body p:last-child {
-  margin-bottom: 0;
-}
-
-.markdown-body strong {
-  font-weight: 600;
-  color: var(--color-ink);
-}
-
-.markdown-body em {
-  font-style: italic;
-  color: var(--color-ink);
-}
-
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3,
-.markdown-body h4 {
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--color-ink);
-  letter-spacing: -0.02em;
-  margin-top: 1.35rem;
-  margin-bottom: 0.45rem;
-  line-height: 1.25;
-}
-
-.markdown-body h1 { font-size: 1.35rem; }
-.markdown-body h2 { font-size: 1.2rem; }
-.markdown-body h3 { font-size: 1.05rem; }
-.markdown-body h4 { font-size: 0.95rem; }
-
-.markdown-body ul {
-  list-style-type: disc;
-  padding-left: 1.25rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.85rem;
-}
-
-.markdown-body ol {
-  list-style-type: decimal;
-  padding-left: 1.25rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.85rem;
-}
-
-.markdown-body li {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-  color: var(--color-ink);
-}
-
-.markdown-body code {
-  font-family: var(--font-mono);
-  font-size: 0.85em;
-  background: rgba(228, 219, 201, 0.45);
-  border: 1px solid var(--color-line);
-  padding: 0.15rem 0.35rem;
-  border-radius: 4px;
-  color: var(--color-ink);
-}
-
-.markdown-body pre {
-  margin-top: 0.85rem;
-  margin-bottom: 0.85rem;
-  background: #1a1712;
-  border: 1px solid #352f26;
-  border-radius: 12px;
-  padding: 0.875rem 1rem;
-  overflow-x: auto;
-  box-shadow: 0 1px 2px rgba(26, 23, 18, 0.05);
-}
-
-.markdown-body pre code {
-  background: transparent;
-  border: none;
-  padding: 0;
-  color: var(--color-paper);
-  font-size: 0.85rem;
-  line-height: 1.65;
-}
-
-.markdown-body blockquote {
-  border-left: 2px solid var(--color-claret);
-  padding-left: 0.875rem;
-  padding-top: 0.125rem;
-  padding-bottom: 0.125rem;
-  margin-top: 0.85rem;
-  margin-bottom: 0.85rem;
-  color: var(--color-muted);
-  font-style: italic;
-  background: rgba(228, 219, 201, 0.2);
-  border-radius: 0 6px 6px 0;
-}
-
-.markdown-body hr {
-  border: 0;
-  border-top: 1px solid var(--color-line);
-  margin-top: 1.25rem;
-  margin-bottom: 1.25rem;
-}
-
-.markdown-body a {
-  color: var(--color-claret);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: opacity 0.15s ease;
-}
-.markdown-body a:hover {
-  opacity: 0.85;
-}
-
-.markdown-body table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  border: 1px solid var(--color-line);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.markdown-body th {
-  background: rgba(228, 219, 201, 0.35);
-  padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid var(--color-line);
-  text-align: left;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--color-ink);
-}
-
-.markdown-body td {
-  padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid rgba(216, 207, 188, 0.6);
-  font-size: 0.875rem;
-  color: var(--color-muted);
-}
