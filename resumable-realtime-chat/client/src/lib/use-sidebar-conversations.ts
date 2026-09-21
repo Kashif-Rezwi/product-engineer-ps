@@ -1,6 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+'use client';
+
+import { useCallback, useSyncExternalStore } from 'react';
 import {
-  getStoredConversations,
+  getSnapshot,
+  getServerSnapshot,
+  subscribe,
   removeConversation,
   StoredConversation,
 } from './conversations-store';
@@ -8,35 +12,19 @@ import {
 interface UseSidebarConversationsReturn {
   conversations: StoredConversation[];
   handleDelete: (id: string) => void;
-  /** Call this after saving a new conversation to sync sidebar state. */
-  refresh: () => void;
 }
 
 /**
- * Shared hook that manages sidebar conversation list state.
- *
- * Centralises the localStorage read + useState + handleDelete pattern
- * that was duplicated across the home page and conversation page.
- *
- * `refreshKey` triggers a re-read from localStorage — pass `convId`
- * so the sidebar refreshes when navigating between conversations.
+ * Sidebar conversation list, kept automatically in sync with the localStorage
+ * store via useSyncExternalStore — every saveConversation/removeConversation
+ * from anywhere in the app updates all mounted sidebars. No manual refresh().
  */
-export function useSidebarConversations(
-  refreshKey?: string,
-): UseSidebarConversationsReturn {
-  const [conversations, setConversations] = useState<StoredConversation[]>([]);
-
-  useEffect(() => {
-    setConversations(getStoredConversations());
-  }, [refreshKey]);
+export function useSidebarConversations(): UseSidebarConversationsReturn {
+  const conversations = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const handleDelete = useCallback((id: string) => {
-    setConversations(removeConversation(id));
+    removeConversation(id);
   }, []);
 
-  const refresh = useCallback(() => {
-    setConversations(getStoredConversations());
-  }, []);
-
-  return { conversations, handleDelete, refresh };
+  return { conversations, handleDelete };
 }
