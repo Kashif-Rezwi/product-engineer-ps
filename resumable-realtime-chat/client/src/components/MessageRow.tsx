@@ -19,7 +19,7 @@ function MessageRowBase({ message }: { message: ChatMessage }) {
   if (isUser) {
     return (
       <div className="flex justify-end py-3">
-        <div className="max-w-[75%] bg-paper-2 border border-line rounded-2xl rounded-br-xs px-4 py-3 text-[0.9375rem] leading-relaxed text-ink shadow-xs whitespace-pre-wrap">
+        <div className="max-w-[75%] bg-paper-2 border border-line rounded-2xl rounded-br-xs px-4 py-3 text-[0.9375rem] leading-relaxed text-ink shadow-xs whitespace-pre-wrap break-words">
           {message.content}
         </div>
       </div>
@@ -40,7 +40,7 @@ function MessageRowBase({ message }: { message: ChatMessage }) {
 
         {/* Action row — visible on hover */}
         {!message.isError && (
-          <div className="flex items-center gap-3 mt-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <div className="flex items-center gap-3 mt-2.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150">
             <span className="font-mono text-[11px] text-stone">{message.timestamp}</span>
             <button
               onClick={handleCopy}

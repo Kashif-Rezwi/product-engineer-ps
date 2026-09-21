@@ -68,7 +68,7 @@ export function Composer({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         placeholder={placeholder}
-        className="w-full resize-none bg-transparent px-4 pt-3.5 pb-12 text-[0.9375rem] leading-relaxed text-ink placeholder:text-stone outline-none disabled:opacity-40"
+        className="w-full resize-none bg-transparent px-4 pt-3.5 pb-12 text-base pointer-fine:text-[0.9375rem] leading-relaxed text-ink placeholder:text-stone outline-none disabled:opacity-40"
         style={{ minHeight, maxHeight: `${MAX_HEIGHT_PX}px` }}
       />
 

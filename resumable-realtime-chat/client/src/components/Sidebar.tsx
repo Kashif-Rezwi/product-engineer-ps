@@ -114,7 +114,7 @@ export function Sidebar({
                       <Link
                         href={`/conversations/${c.id}`}
                         onClick={onClose}
-                        className={`flex-1 min-w-0 flex items-center px-3 py-2.5 rounded-xl transition-all duration-150 ${
+                        className={`flex-1 min-w-0 flex items-center px-3 pr-10 py-2.5 rounded-xl transition-all duration-150 ${
                           isActive
                             ? 'bg-paper-2 border border-line text-ink font-medium shadow-xs'
                             : 'border border-transparent text-muted hover:bg-sand/40 hover:text-ink'

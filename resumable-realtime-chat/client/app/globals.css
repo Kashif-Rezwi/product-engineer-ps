@@ -58,6 +58,12 @@ html, body {
   color: var(--color-paper);
 }
 
+/* ─── Clickable controls show the hand cursor (browsers default buttons to arrow) ── */
+button:not(:disabled),
+[role='button']:not(:disabled) {
+  cursor: pointer;
+}
+
 /* ─── Entry animation for notices & empty states (animate-fadeIn) ─────────── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }

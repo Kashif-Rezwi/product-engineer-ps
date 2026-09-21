@@ -68,7 +68,7 @@ export default function HomePage() {
           </button>
         </header>
 
-        <main className="flex-1 flex flex-col items-center justify-center min-w-0 px-4 pb-6 overflow-y-auto scroll-y">
+        <main className="flex-1 flex flex-col items-center justify-center-safe min-w-0 px-4 pb-6 overflow-y-auto scroll-y">
           {/* Hero */}
           <div className="flex flex-col items-center gap-3 mb-8 text-center">
             <AppLogo size="lg" />

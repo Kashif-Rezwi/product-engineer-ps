@@ -26,8 +26,8 @@ export function EmptyConversationState({
   sending = false,
 }: EmptyConversationStateProps) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 select-none animate-fadeIn overflow-y-auto">
-      <div className="w-full max-w-2xl flex flex-col items-center -mt-10 sm:-mt-16">
+    <div className="flex-1 flex flex-col items-center justify-center-safe px-4 pt-8 pb-18 sm:pb-24 select-none animate-fadeIn overflow-y-auto">
+      <div className="w-full max-w-2xl flex flex-col items-center">
         {/* Stylistic & bold headline */}
         <div className="flex items-center justify-center gap-3.5 sm:gap-4 mb-7 sm:mb-8">
           <AppLogo size="md" className="shadow-xs shrink-0" />

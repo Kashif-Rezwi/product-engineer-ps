@@ -114,7 +114,7 @@ const MARKDOWN_COMPONENTS: Components = {
       return <code className={className}>{children}</code>;
     }
     return (
-      <code className="rounded-md bg-sand/50 px-1.5 py-0.5 font-mono text-[0.85em] text-ink border border-line whitespace-nowrap">
+      <code className="rounded-md bg-sand/50 px-1.5 py-0.5 font-mono text-[0.85em] text-ink border border-line break-words">
         {children}
       </code>
     );
