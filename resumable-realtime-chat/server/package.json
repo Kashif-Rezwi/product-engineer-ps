@@ -1,11 +1,17 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Resumable realtime conversation — SSE streaming server",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "benchmark": "tsx scripts/verify-resumption.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +30,7 @@
     "@types/node": "^26.6.2",
     "prisma": "^6.19.3",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^3.2.4"
   }
 }
