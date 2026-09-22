@@ -46,19 +46,27 @@ connected → completed.
 
 **Failure / recovery scenarios (reproduce manually):**
 
-- *Missed-event recovery (AC2/AC3):* while a reply is streaming, toggle
-  DevTools → Network → Offline, then Online. The client reconnects with its
-  `Last-Event-ID` cursor and continues exactly where it stopped — no repeated
-  text, no gaps.
+- *Missed-event recovery (AC2/AC3):* the verification benchmark (below)
+  demonstrates this against the live server — it aborts the SSE connection
+  mid-generation while the run keeps appending, reconnects from the client's
+  `Last-Event-ID` cursor, and asserts zero missing and zero duplicate events.
+  The same cursor reconnect is visible in the browser during the AC4 scenario
+  below: the client's retry request carries the `Last-Event-ID` header
+  (DevTools → Network → the second `stream` request → Headers) and the
+  restarted server replays strictly after that cursor. (Browser "offline"
+  throttling does not abort an in-flight SSE connection, so it does not
+  exercise this path.)
 - *Generation failure (AC5):* run the server with
   `GENERATOR=fake FAKE_GENERATOR_FAIL_AFTER=12 npm run dev` and send a
   message. The run emits 12 chunks, then a `failed` event; the run is FAILED
   in the database with its partial history preserved and never later becomes
   completed.
 - *Service restart (AC4):* kill the server mid-stream (`Ctrl+C`), restart it
-  and reload the conversation. The interrupted run is reconciled to FAILED
-  ("Run interrupted by server restart") and the persisted history is still
-  visible.
+  and reload the conversation. The client shows bounded retries
+  (`Retry 1/3 … 3/3`), reconnects with its cursor, and lands in an explicit
+  Failed state; the restarted server reconciles the interrupted run to FAILED
+  ("Run interrupted by server restart") and the persisted partial history is
+  still visible after reload.
 
 ## Run the tests
 
