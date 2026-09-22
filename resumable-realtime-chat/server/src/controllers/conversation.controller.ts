@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { conversationService } from '../services/conversation.service.js';
 import { runnerService } from '../services/runner.service.js';
-import { redisService } from '../services/redis.service.js';
 import { streamService } from '../services/stream.service.js';
+import { isValidStreamId } from '../lib/cursor.js';
 
 export class ConversationController {
     // POST /conversations
@@ -34,7 +34,7 @@ export class ConversationController {
             );
 
             // Fire background run
-            runnerService.executeRun(result.run.id, conversationId as string, content.trim()).catch((err) => {
+            runnerService.executeRun(result.run.id, content.trim()).catch((err) => {
                 console.error('[Background Run Execution Error]', err);
             });
 
@@ -72,8 +72,7 @@ export class ConversationController {
         }
     }
 
-    // GET /conversations/:id/runs/:runId/stream
-    // Streams run events from Redis Stream with Last-Event-ID reconnection support
+    // GET /conversations/:id/runs/:runId/stream — SSE with Last-Event-ID resume support
     async streamRun(req: Request, res: Response): Promise<void> {
         try {
             const { id: conversationId, runId } = req.params;
@@ -86,8 +85,8 @@ export class ConversationController {
             const headerCursor = req.headers['last-event-id'];
             const queryCursor = req.query.cursor as string | undefined;
             const rawCursor = (typeof headerCursor === 'string' ? headerCursor : queryCursor) || '0-0';
-            // Validate cursor format per Problem Requirement AC6
-            if (!redisService.isValidStreamId(rawCursor)) {
+            // AC6: reject unknown/stale cursors with an explicit 400
+            if (!isValidStreamId(rawCursor)) {
                 res.status(400).json({
                     error: 'INVALID_CURSOR',
                     message: 'Last-Event-ID must match Redis stream format (e.g. 1726123456789-0) or 0-0'
