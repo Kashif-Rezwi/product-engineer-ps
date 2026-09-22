@@ -436,6 +436,5 @@ followed one predictable path instead of rediscovering scattered patterns,
 and fixes to common behavior applied consistently.
 
 **Evidence.** Public product: [swipepages.com](https://swipepages.com/).
-Official documentation of the workflow and field-mapping surface I worked on:
-[Connecting AI Page Builder forms to your workflows](https://docs.swipepages.com/en/articles/15358440-connecting-ai-page-builder-forms-to-your-workflows).
-Personal shipping evidence: [github.com/Kashif-Rezwi](https://github.com/Kashif-Rezwi).
+Personal shipping evidence (public repositories):
+[github.com/Kashif-Rezwi](https://github.com/Kashif-Rezwi).
