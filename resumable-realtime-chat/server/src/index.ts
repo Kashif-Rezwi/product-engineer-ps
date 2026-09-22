@@ -9,8 +9,7 @@ const port = process.env.PORT || 3001;
 
 // standard middleware
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    exposedHeaders: ['Last-Event-ID']
+    origin: process.env.CLIENT_URL || 'http://localhost:3000'
 }));
 app.use(express.json());
 
