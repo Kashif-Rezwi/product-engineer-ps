@@ -13,7 +13,7 @@ export class ConversationService {
         });
     }
 
-    // Creates a UserMessage and a Run in QUEUED status
+    // Creates a new user message and a corresponding run in one transaction so they can never diverge.
     async createMessageAndRun(conversationId: string, content: string) {
         const conv = await prismaClient.conversation.findUnique({
             where: { id: conversationId }
@@ -65,47 +65,44 @@ export class ConversationService {
         });
     }
 
-    // Transitions run from QUEUED to RUNNING
-    async markRunRunning(runId: string) {
-        const run = await prismaClient.run.findUnique({ where: { id: runId } });
-        if (!run || run.status !== 'QUEUED') return null;
-        return prismaClient.run.update({
-            where: { id: runId },
+    // Guarded single UPDATE ... WHERE status = ...: a run can never transition
+    // from (or through) a terminal state, even if two writers race.
+
+    // QUEUED -> RUNNING
+    async markRunRunning(runId: string): Promise<boolean> {
+        const { count } = await prismaClient.run.updateMany({
+            where: { id: runId, status: 'QUEUED' },
             data: { status: 'RUNNING' }
         });
+        return count === 1;
     }
 
-    // Status-guarded completion: only transitions RUNNING -> COMPLETED
-    // Prevents overriding an already terminal run.
-    async markRunCompleted(runId: string, traceLog: RunEvent[]) {
-        const run = await prismaClient.run.findUnique({ where: { id: runId } });
-        if (!run || run.status !== 'RUNNING') {
-            console.warn(`[ConversationService] Ignored completion for non-running run: ${runId}`);
-            return null;
-        }
-        return prismaClient.run.update({
-            where: { id: runId },
+    // RUNNING -> COMPLETED (persists the durable traceLog)
+    async markRunCompleted(runId: string, traceLog: RunEvent[]): Promise<boolean> {
+        const { count } = await prismaClient.run.updateMany({
+            where: { id: runId, status: 'RUNNING' },
             data: {
                 status: 'COMPLETED',
-                traceLog: traceLog as any
+                traceLog: traceLog as unknown as Prisma.InputJsonValue
             }
         });
+        if (count === 0) {
+            console.warn(`[ConversationService] Ignored completion for non-running run: ${runId}`);
+        }
+        return count === 1;
     }
 
-    // Status-guarded failure: marks run as FAILED
-    async markRunFailed(runId: string, error: string, traceLog: RunEvent[]) {
-        const run = await prismaClient.run.findUnique({ where: { id: runId } });
-        if (!run || run.status === 'COMPLETED' || run.status === 'FAILED') {
-            return null;
-        }
-        return prismaClient.run.update({
-            where: { id: runId },
+    // QUEUED/RUNNING -> FAILED (terminal)
+    async markRunFailed(runId: string, error: string, traceLog: RunEvent[]): Promise<boolean> {
+        const { count } = await prismaClient.run.updateMany({
+            where: { id: runId, status: { in: ['QUEUED', 'RUNNING'] } },
             data: {
                 status: 'FAILED',
                 error,
-                traceLog: traceLog as any
+                traceLog: traceLog as unknown as Prisma.InputJsonValue
             }
         });
+        return count === 1;
     }
 }
 
