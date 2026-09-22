@@ -120,7 +120,7 @@ All six acceptance scenarios are implemented:
 the submitted code:
 
 ```text
-[benchmark] interrupted after 12 events (cursor=1790082477217-0)
+[benchmark] interrupted after 12 events (cursor=1790097985583-0)
 [benchmark] reconnected from cursor, received 24 more events
 [benchmark] total events received : 36 (unique ids: 36)
 [benchmark] text chunks          : 35/35
