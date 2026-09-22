@@ -6,54 +6,65 @@ export interface StreamEntry {
     event: RunEvent;
 }
 
+const STREAM_TTL_SECONDS = 24 * 60 * 60;
+
 export class RedisService {
-    public client: Redis;
+    // A BLOCKING XREAD parks its connection server-side, so blocking reads use
+    // a dedicated duplicate connection — writes must never queue behind them.
+    private readonly client: Redis;
+    private readonly blockingClient: Redis;
 
     constructor() {
         const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-        this.client = new Redis(redisUrl, {
+        const options = {
             maxRetriesPerRequest: 3,
-            retryStrategy: (times) => Math.min(times * 100, 2000)
-        });
+            retryStrategy: (times: number) => Math.min(times * 100, 2000)
+        };
+
+        this.client = new Redis(redisUrl, options);
+        this.blockingClient = this.client.duplicate();
 
         this.client.on('error', (err) => {
             console.error('[RedisService] Connection error:', err.message);
         });
+        this.blockingClient.on('error', (err) => {
+            console.error('[RedisService] Blocking connection error:', err.message);
+        });
     }
 
-    // Appends an event to the run's Redis stream and returns the generated stream ID
+    private streamKey(runId: string): string {
+        return `conv:events:${runId}`;
+    }
+
+    // XADD + EXPIRE in one pipeline; the returned entry ID doubles as the SSE
+    // id / resume cursor, and the 24h TTL bounds expired streams.
     async emitEvent(runId: string, event: RunEvent): Promise<string> {
-        const streamKey = `conv:events:${runId}`;
-        const entryId = await this.client.xadd(
-            streamKey,
-            '*', // Auto-generate ID: <timestamp>-<sequence>
-            'event',
-            JSON.stringify(event)
-        );
+        const streamKey = this.streamKey(runId);
+        const results = await this.client
+            .pipeline()
+            .xadd(streamKey, '*', 'event', JSON.stringify(event))
+            .expire(streamKey, STREAM_TTL_SECONDS)
+            .exec();
 
-        if (!entryId) {
-            throw new Error(`Failed to append event to stream ${streamKey}`);
+        const [xaddError, entryId] = (results?.[0] ?? [null, null]) as [Error | null, string | null];
+        if (xaddError || !entryId) {
+            throw new Error(`Failed to append event to stream ${streamKey}: ${xaddError?.message ?? 'no entry id'}`);
         }
-
-        // Keep stream alive for 24 hours (bounded TTL)
-        await this.client.expire(streamKey, 86400);
-
         return entryId;
     }
 
-    // Reads events after a specific cursor (afterId).
-    // If blockMs > 0, waits up to blockMs milliseconds for live events to arrive.
+    // Reads events after afterId; blockMs > 0 blocks for live events on the dedicated connection.
     async readEvents(
         runId: string,
         afterId: string = '0-0',
         blockMs: number = 2000
     ): Promise<StreamEntry[]> {
-        const streamKey = `conv:events:${runId}`;
+        const streamKey = this.streamKey(runId);
+        const client = blockMs > 0 ? this.blockingClient : this.client;
 
-        // XREAD [BLOCK ms] STREAMS key afterId
         const results = blockMs > 0
-            ? await this.client.xread('BLOCK', blockMs, 'STREAMS', streamKey, afterId)
-            : await this.client.xread('STREAMS', streamKey, afterId);
+            ? await client.xread('BLOCK', blockMs, 'STREAMS', streamKey, afterId)
+            : await client.xread('STREAMS', streamKey, afterId);
 
         if (!results || results.length === 0) {
             return [];
@@ -73,9 +84,11 @@ export class RedisService {
         return entries;
     }
 
-    // Validates that a cursor matches the Redis Stream ID pattern (\d+-\d+) or '0-0'
-    isValidStreamId(id: string): boolean {
-        return id === '0-0' || /^\d+-\d+$/.test(id);
+    // Rebuilds an expired stream from the durable traceLog so reconnections share one cursor space.
+    async appendEvents(runId: string, events: RunEvent[]): Promise<void> {
+        for (const event of events) {
+            await this.emitEvent(runId, event);
+        }
     }
 }
 
